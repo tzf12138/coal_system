@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}项目详情{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h3>{{ project.name }}</h3>
+                <div class="text-muted">{{ project.code }} / {{ project.mine_name }}</div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge text-bg-primary fs-6">{{ project.get_stage_display }}</span>
+                <a href="{% url 'lifecycle:project_update' project.id %}" class="btn btn-outline-primary btn-sm">编辑项目</a>
+                <a href="{% url 'lifecycle:project_delete' project.id %}" class="btn btn-outline-danger btn-sm">删除项目</a>
+                <a href="{% url 'lifecycle:task_create_for_project' project.id %}" class="btn btn-dark btn-sm">新增任务</a>
+                <a href="{% url 'lifecycle:export_project_tasks_excel' project.id %}" class="btn btn-success btn-sm">导出任务 Excel</a>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-3">负责人：{{ project.owner }}</div>
+            <div class="col-md-3">阶段：{{ project.get_stage_display }}</div>
+            <div class="col-md-3">预算：{{ project.budget }}</div>
+            <div class="col-md-3">进度：{{ project.progress }}%</div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-3">计划开始：{{ project.start_date }}</div>
+            <div class="col-md-3">计划结束：{{ project.end_date }}</div>
+        </div>
+        <p class="mt-3 mb-0">{{ project.description }}</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <h5 class="mb-2">任务状态分布</h5>
+                <div class="chart-box"><canvas id="taskStatusChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body">
+            <h5 class="mb-3">任务统计</h5>
+            <div class="border rounded-4 p-3 mb-3"><div class="text-muted">任务总数</div><h4 class="mb-0">{{ tasks|length }}</h4></div>
+            <div class="border rounded-4 p-3 mb-3"><div class="text-muted">已完成</div><h4 class="mb-0">{{ completed_task_count }}</h4></div>
+            <div class="border rounded-4 p-3"><div class="text-muted">进行中</div><h4 class="mb-0">{{ doing_task_count }}</h4></div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0">任务分解</h5><a href="{% url 'lifecycle:task_create_for_project' project.id %}" class="btn btn-dark btn-sm">新增任务</a></div>
+            <table class="table table-striped align-middle">
+                <thead><tr><th>任务</th><th>责任人</th><th>阶段</th><th>状态</th><th>进度</th><th>操作</th></tr></thead>
+                <tbody>
+                    {% for t in tasks %}
+                    <tr>
+                        <td>{{ t.title }}</td><td>{{ t.owner }}</td><td>{{ t.stage }}</td><td>{{ t.get_status_display }}</td><td>{{ t.progress }}%</td>
+                        <td><a href="{% url 'lifecycle:task_update' t.id %}" class="btn btn-sm btn-outline-primary">编辑</a> <a href="{% url 'lifecycle:task_delete' t.id %}" class="btn btn-sm btn-outline-danger">删除</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted">暂无任务数据</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body">
+            <h5>里程碑</h5>
+            {% for m in milestones %}
+            <div class="border rounded-3 p-3 mb-2"><div class="d-flex justify-content-between"><strong>{{ m.title }}</strong><span>{% if m.completed %}已完成{% else %}未完成{% endif %}</span></div><div class="text-muted">{{ m.milestone_date }}</div><div>{{ m.description }}</div></div>
+            {% empty %}<div class="text-muted">暂无里程碑</div>{% endfor %}
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4"><div class="card-body">
+            <h5>文档资料</h5>
+            {% for d in documents %}
+            <div class="border rounded-3 p-3 mb-2"><strong>{{ d.title }}</strong><div class="text-muted">{{ d.category }} / {{ d.version }}</div><div>{{ d.file_note }}</div></div>
+            {% empty %}<div class="text-muted">暂无项目资料</div>{% endfor %}
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4"><div class="card-body">
+            <h5>风险与验收</h5>
+            <h6>风险项</h6>
+            {% for r in risks %}
+            <div class="border rounded-3 p-3 mb-2"><strong>{{ r.title }}</strong><div class="text-muted">{{ r.level }} / {{ r.status }}</div><div>{{ r.strategy }}</div></div>
+            {% empty %}<div class="text-muted">暂无风险项</div>{% endfor %}
+            <h6 class="mt-3">验收记录</h6>
+            {% for a in acceptances %}
+            <div class="border rounded-3 p-3 mb-2"><strong>{{ a.acceptance_stage }}</strong><div class="text-muted">{{ a.accepted_at }} / {{ a.result }} / {{ a.score }}分</div><div>{{ a.summary }}</div></div>
+            {% empty %}<div class="text-muted">暂无验收记录</div>{% endfor %}
+        </div></div>
+    </div>
+</div>
+<style>.chart-box{position:relative;width:100%;height:320px;min-height:320px;overflow:hidden;}</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+let taskStatusChart = null;
+function buildTaskStatusChart(){
+  const ctx=document.getElementById('taskStatusChart').getContext('2d');
+  if(taskStatusChart){taskStatusChart.destroy();taskStatusChart=null;}
+  taskStatusChart = new Chart(ctx,{type:'pie',data:{labels:['未开始','进行中','已完成','已延期'],datasets:[{data:[{{ todo_task_count }},{{ doing_task_count }},{{ completed_task_count }},{{ delayed_task_count }}]}]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom'}}}});
+}
+window.addEventListener('beforeunload',function(){if(taskStatusChart){taskStatusChart.destroy();taskStatusChart=null;}});
+buildTaskStatusChart();
+</script>
+{% endblock %}

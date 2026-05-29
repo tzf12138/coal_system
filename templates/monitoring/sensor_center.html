@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}传感器中心{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body">
+        <h3>传感器中心</h3>
+        <table class="table table-striped">
+            <thead><tr><th>编码</th><th>名称</th><th>工艺</th><th>类型</th><th>位置</th><th>当前值</th><th>在线状态</th></tr></thead>
+            <tbody>
+                {% for s in sensors %}
+                <tr>
+                    <td>{{ s.code }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.process.name }}</td>
+                    <td>{{ s.get_sensor_type_display }}</td>
+                    <td>{{ s.location }}</td>
+                    <td>{{ s.current_value }} {{ s.unit }}</td>
+                    <td>{% if s.is_online %}在线{% else %}离线{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

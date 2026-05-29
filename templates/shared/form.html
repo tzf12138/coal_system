@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">{{ page_title }}</h3>
+                    <a href="{{ back_url }}" class="btn btn-outline-secondary">返回</a>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-dark" type="submit">保存</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.querySelectorAll('input, select, textarea').forEach(el => {
+  if (!el.classList.contains('form-check-input')) el.classList.add('form-control');
+});
+document.querySelectorAll('input[type="checkbox"]').forEach(el => el.classList.remove('form-control'));
+</script>
+{% endblock %}

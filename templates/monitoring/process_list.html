@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}充填工艺监测{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-1">充填工艺监测</h2>
+        <div class="text-muted">支持工艺台账管理、传感器维护和实时曲线刷新。</div>
+    </div>
+    <a href="{% url 'monitoring:process_create' %}" class="btn btn-dark">新增工艺</a>
+</div>
+<div class="row g-3">
+    {% for process in processes %}
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 card-hover">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5>{{ process.name }}</h5>
+                    <span class="badge text-bg-primary">{{ process.get_process_type_display }}</span>
+                </div>
+                <div class="text-muted mb-3">{{ process.mine_name }}</div>
+                <div>运行状态：{{ process.status }}</div>
+                <div>设计能力：{{ process.design_capacity }} m³/h</div>
+                <div>当前流量：{{ process.current_flow }} m³/h</div>
+                <div>浓度：{{ process.concentration }} %</div>
+                <div>管路压力：{{ process.pipeline_pressure }} MPa</div>
+                <div>数据质量：{{ process.data_quality }}</div>
+                <div class="d-flex gap-2 flex-wrap mt-3">
+                    <a href="{% url 'monitoring:process_detail' process.id %}" class="btn btn-dark">进入工艺详情</a>
+                    <a href="{% url 'monitoring:process_update' process.id %}" class="btn btn-outline-primary">编辑</a>
+                    <a href="{% url 'monitoring:process_delete' process.id %}" class="btn btn-outline-danger">删除</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4"><div class="card-body">
+            <h5>环境监测</h5>
+            <table class="table">
+                <thead><tr><th>矿井</th><th>气体</th><th>温度</th><th>湿度</th><th>压力</th><th>风险</th></tr></thead>
+                <tbody>
+                    {% for e in environments %}
+                    <tr><td>{{ e.mine_name }}</td><td>{{ e.gas_concentration }}</td><td>{{ e.temperature }}</td><td>{{ e.humidity }}</td><td>{{ e.pressure }}</td><td>{{ e.risk_level }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4"><div class="card-body">
+            <h5>近期告警</h5>
+            {% for a in alerts %}
+            <div class="border rounded-3 p-3 mb-2">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ a.title }}</strong>
+                    <span class="badge text-bg-danger">{{ a.get_level_display }}</span>
+                </div>
+                <div class="text-muted">{{ a.description }}</div>
+            </div>
+            {% endfor %}
+        </div></div>
+    </div>
+</div>
+{% endblock %}

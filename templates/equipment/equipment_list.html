@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}设备健康管理{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-1">设备健康管理</h2>
+        <div class="text-muted">支持设备台账、维护工单的增删改查和远程诊断展示。</div>
+    </div>
+    <a href="{% url 'equipment:equipment_create' %}" class="btn btn-dark">新增设备</a>
+</div>
+<div class="row g-3">
+    {% for e in equipments %}
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 card-hover">
+            <div class="card-body">
+                <h5>{{ e.name }}</h5>
+                <div class="text-muted">{{ e.code }} / {{ e.category }}</div>
+                <div>矿井：{{ e.mine_name }}</div>
+                <div>位置：{{ e.location }}</div>
+                <div>健康评分：{{ e.health_score }}</div>
+                <div>健康状态：{{ e.get_health_status_display }}</div>
+                <div>累计运行：{{ e.runtime_hours }} h</div>
+                <div class="d-flex gap-2 flex-wrap mt-3">
+                    <a class="btn btn-dark" href="{% url 'equipment:equipment_detail' e.id %}">设备详情</a>
+                    <a class="btn btn-outline-primary" href="{% url 'equipment:equipment_update' e.id %}">编辑</a>
+                    <a class="btn btn-outline-danger" href="{% url 'equipment:equipment_delete' e.id %}">删除</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mt-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">维修工单</h5>
+            <a href="{% url 'equipment:order_create' %}" class="btn btn-outline-dark btn-sm">新增工单</a>
+        </div>
+        <table class="table">
+            <thead><tr><th>设备</th><th>工单标题</th><th>优先级</th><th>状态</th><th>维修人员</th><th>时间</th></tr></thead>
+            <tbody>
+                {% for o in orders %}
+                <tr><td>{{ o.equipment.name }}</td><td>{{ o.title }}</td><td>{{ o.priority }}</td><td>{{ o.get_status_display }}</td><td>{{ o.assignee }}</td><td>{{ o.created_at|date:"Y-m-d H:i" }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

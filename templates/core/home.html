@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}平台首页{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h2 class="mb-2">煤矿智能化充填综合操作平台</h2>
+                <p class="text-muted mb-0">
+                    覆盖“充填工艺全流程在线监测分析、工程项目全生命周期管理、设备健康管理及远程专家诊断、AR 协作、培训实训”等核心业务。
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h5 class="section-title">平台能力概览</h5>
+                <ul class="mb-0">
+                    <li>三种充填工艺：膏体 / 尾砂 / 原矸</li>
+                    <li>项目立项到验收运维全流程闭环</li>
+                    <li>设备诊断 + 工单 + 远程专家会诊</li>
+                    <li>AR 协作与培训实训扩展能力</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    {% for item in dashboard_notes %}
+    <div class="col-md-4 col-xl-2">
+        <div class="card stat-card shadow-sm rounded-4 card-hover">
+            <div class="card-body">
+                <div class="small-muted">{{ item.title }}</div>
+                <div class="fs-3 fw-bold">{{ item.value }}</div>
+                <div class="small-muted mt-2">{{ item.description }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <h5 class="section-title mb-3">充填工艺总览</h5>
+                <div class="row g-3">
+                    {% for process in processes %}
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-1">{{ process.name }}</h6>
+                                <span class="badge text-bg-primary">{{ process.get_process_type_display }}</span>
+                            </div>
+                            <div class="small-muted">{{ process.mine_name }}</div>
+                            <div class="mt-2">状态：{{ process.status }}</div>
+                            <div>流量：{{ process.current_flow }} m³/h</div>
+                            <div>浓度：{{ process.concentration }} %</div>
+                            <div>压力：{{ process.pipeline_pressure }} MPa</div>
+                            <a href="/monitoring/process/{{ process.id }}/" class="btn btn-sm btn-outline-dark mt-3">查看详情</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">暂无工艺数据</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <h5 class="section-title mb-3">最新告警与公告</h5>
+                <div class="mb-4">
+                    {% for alert in latest_alerts %}
+                    <div class="border rounded-3 p-3 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ alert.title }}</strong>
+                            <span class="badge text-bg-danger">{{ alert.get_level_display }}</span>
+                        </div>
+                        <div class="small-muted">{{ alert.process.name }}{% if alert.sensor %} / {{ alert.sensor.name }}{% endif %}</div>
+                        <div class="mt-1">{{ alert.description }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <h6>平台公告</h6>
+                {% for item in announcements %}
+                <div class="mb-2">
+                    <strong>{{ item.title }}</strong>
+                    <div class="small-muted">{{ item.content }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body">
+                <h5 class="section-title mb-3">专家知识库</h5>
+                {% for item in knowledge_list %}
+                <div class="mb-3">
+                    <span class="badge badge-soft">{{ item.category }}</span>
+                    <div class="fw-semibold mt-1">{{ item.title }}</div>
+                    <div class="small-muted">{{ item.content }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body">
+                <h5 class="section-title mb-3">系统功能导航</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <a class="sidebar-link" href="/core/dashboard/">综合大屏</a>
+                        <a class="sidebar-link" href="/monitoring/">充填工艺监测分析</a>
+                        <a class="sidebar-link" href="/monitoring/sensors/">传感器中心</a>
+                        <a class="sidebar-link" href="/monitoring/alerts/">报警中心</a>
+                    </div>
+                    <div class="col-md-6">
+                        <a class="sidebar-link" href="/lifecycle/">项目全生命周期管理</a>
+                        <a class="sidebar-link" href="/lifecycle/tasks/">任务看板</a>
+                        <a class="sidebar-link" href="/equipment/">设备健康管理</a>
+                        <a class="sidebar-link" href="/equipment/diagnosis/">远程专家诊断 / AR</a>
+                        <a class="sidebar-link" href="/training/">培训与实训管理</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

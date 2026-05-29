@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}专家知识库{% endblock %}
+{% block extra_head %}<style>.knowledge-card{transition:.2s}.knowledge-card.hide{display:none}.diag-step{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:12px}.tag-filter.active{background:#111827;color:#fff}.plan-line{border-left:3px solid #2563eb;padding-left:12px;margin-bottom:10px}</style>{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><div><h3 class="mb-1">专家知识库</h3><div class="text-muted">支持知识检索、分类筛选、故障诊断向导和处置方案生成。</div></div><button class="btn btn-dark" id="generatePlan">生成处置方案</button></div>
+<div class="row g-3">
+  <div class="col-xl-8">
+    <div class="card border-0 shadow-sm rounded-4 mb-3"><div class="card-body"><div class="row g-2 align-items-center"><div class="col-md-7"><input class="form-control" id="searchBox" placeholder="输入关键词：膏体、尾砂、振动、AR、项目管理..."></div><div class="col-md-5 d-flex gap-2 flex-wrap"><button class="btn btn-sm btn-outline-dark tag-filter active" data-cat="all">全部</button><button class="btn btn-sm btn-outline-dark tag-filter" data-cat="充填工艺">充填工艺</button><button class="btn btn-sm btn-outline-dark tag-filter" data-cat="设备诊断">设备诊断</button><button class="btn btn-sm btn-outline-dark tag-filter" data-cat="AR协作">AR协作</button><button class="btn btn-sm btn-outline-dark tag-filter" data-cat="项目管理">项目管理</button></div></div></div></div>
+    <div class="row g-3" id="knowledgeGrid">{% for item in knowledge_list %}<div class="col-lg-6 knowledge-card" data-cat="{{ item.category }}" data-text="{{ item.category }} {{ item.title }} {{ item.content }}"><div class="border rounded-4 p-3 h-100 bg-white shadow-sm"><span class="badge badge-soft">{{ item.category }}</span><h5 class="mt-2">{{ item.title }}</h5><div class="text-muted">{{ item.content }}</div><div class="mt-3 d-flex gap-2"><button class="btn btn-sm btn-outline-primary collect-btn" data-title="{{ item.title }}">收藏</button><button class="btn btn-sm btn-outline-success cite-btn" data-title="{{ item.title }}" data-content="{{ item.content }}">引用到方案</button></div></div></div>{% endfor %}</div>
+  </div>
+  <div class="col-xl-4"><div class="card border-0 shadow-sm rounded-4 mb-3"><div class="card-body"><h5>故障诊断向导</h5><div class="diag-step mb-2"><label class="form-label">异常对象</label><select class="form-select" id="diagObject"><option>高压输送泵</option><option>膏体搅拌机</option><option>压滤系统</option><option>原矸破碎机</option><option>主管路阀组</option></select></div><div class="diag-step mb-2"><label class="form-label">主要现象</label><select class="form-select" id="diagSymptom"><option>振动升高</option><option>温度升高</option><option>管路压力波动</option><option>料位异常</option><option>通讯中断</option></select></div><button class="btn btn-primary w-100" id="runDiag">生成诊断建议</button><div id="diagResult" class="mt-3 text-muted">请选择异常对象和现象后生成建议。</div></div></div><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>处置方案草稿</h5><div id="planBox"><div class="text-muted">点击“引用到方案”或“生成处置方案”后生成草稿。</div></div></div></div></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+let activeCat='all';function filterCards(){let q=document.getElementById('searchBox').value.trim().toLowerCase();document.querySelectorAll('.knowledge-card').forEach(c=>{let okCat=activeCat==='all'||c.dataset.cat===activeCat;let okText=c.dataset.text.toLowerCase().includes(q);c.classList.toggle('hide',!(okCat&&okText));});}
+document.getElementById('searchBox').addEventListener('input',filterCards);document.querySelectorAll('.tag-filter').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tag-filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeCat=b.dataset.cat;filterCards();}));
+document.querySelectorAll('.collect-btn').forEach(b=>b.addEventListener('click',()=>{b.textContent='已收藏';b.classList.remove('btn-outline-primary');b.classList.add('btn-primary');}));
+function appendPlan(title, content){let box=document.getElementById('planBox');if(box.querySelector('.text-muted'))box.innerHTML='';box.innerHTML+=`<div class="plan-line"><strong>${title}</strong><div class="small text-muted">${content}</div></div>`;}
+document.querySelectorAll('.cite-btn').forEach(b=>b.addEventListener('click',()=>appendPlan(b.dataset.title,b.dataset.content)));
+document.getElementById('runDiag').addEventListener('click',()=>{let o=document.getElementById('diagObject').value,s=document.getElementById('diagSymptom').value;let result=`<div class="alert alert-warning"><strong>${o} - ${s}</strong><br>建议核查传感器趋势、历史工单、阈值设置和现场运行状态；若异常持续，应生成维修工单并提交专家复核。</div>`;document.getElementById('diagResult').innerHTML=result;appendPlan(o+'诊断建议','针对 '+s+'，执行趋势复核、现场确认、工单闭环和专家会诊。');});
+document.getElementById('generatePlan').addEventListener('click',()=>appendPlan('通用充填异常处置流程','识别异常参数 → 调阅工艺曲线 → 复核传感器状态 → 安排现场检查 → 生成处置记录 → 归档知识库。'));
+</script>
+{% endblock %}

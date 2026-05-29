@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}培训与实训管理{% endblock %}
+{% block extra_head %}
+<style>
+.training-hero{background:linear-gradient(135deg,#0f172a,#1d4ed8);color:white;border-radius:24px;overflow:hidden;position:relative}.training-hero:after{content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.12)}.course-card{cursor:pointer}.course-card.active{outline:3px solid #2563eb}.sim-screen{min-height:260px;background:radial-gradient(circle at 50% 45%,#334155,#020617);border-radius:18px;color:white;position:relative;overflow:hidden}.sim-pipe{position:absolute;height:10px;border-radius:99px;background:linear-gradient(90deg,#38bdf8,#22c55e);animation:pipeFlow 1.4s infinite}.sim-device{position:absolute;width:94px;height:72px;border-radius:14px;background:#f59e0b;color:#111827;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 10px 24px rgba(245,158,11,.32)}@keyframes pipeFlow{0%{filter:brightness(.8)}50%{filter:brightness(1.25)}100%{filter:brightness(.8)}}.step-item.done{background:#ecfdf5;border-color:#22c55e!important}.question-option{cursor:pointer}.question-option.selected{background:#e0f2fe;border-color:#0284c7!important}</style>
+{% endblock %}
+{% block content %}
+<div class="training-hero p-4 mb-3 shadow-sm">
+  <div class="row align-items-center position-relative">
+    <div class="col-lg-8"><h3 class="mb-2">培训与沉浸式实训管理</h3><div>面向充填工艺、设备诊断、项目管理和安全环保的课程管理、步骤演练、在线测验与培训记录展示。</div></div>
+    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0"><button class="btn btn-light" id="startPractice">开始实训演练</button><button class="btn btn-outline-light ms-2" id="resetPractice">重置进度</button></div>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-xl-4">
+    <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-center mb-2"><h5 class="mb-0">课程库</h5><span class="badge text-bg-primary">{{ courses|length }} 门</span></div>
+      <div class="row g-2">
+        {% for c in courses %}<div class="col-12"><div class="border rounded-4 p-3 course-card" data-title="{{ c.title }}" data-desc="{{ c.description }}" data-teacher="{{ c.teacher }}" data-hours="{{ c.duration_hours }}" data-mode="{{ c.mode }}"><div class="d-flex justify-content-between"><strong>{{ c.title }}</strong><span class="badge badge-soft">{{ c.category }}</span></div><div class="small text-muted mt-1">讲师：{{ c.teacher }} / {{ c.duration_hours }} 学时 / {{ c.mode }}</div></div></div>{% endfor %}
+      </div>
+    </div></div>
+  </div>
+  <div class="col-xl-5">
+    <div class="card border-0 shadow-sm rounded-4 mb-3"><div class="card-body"><h5>实训场景演练</h5><div class="sim-screen mb-3">
+      <div class="sim-pipe" style="left:12%;top:42%;width:70%"></div><div class="sim-pipe" style="left:34%;top:64%;width:40%;transform:rotate(13deg)"></div>
+      <div class="sim-device" style="left:8%;top:30%">制浆站</div><div class="sim-device" style="left:43%;top:28%;background:#60a5fa;color:white">输送泵</div><div class="sim-device" style="right:8%;top:54%;background:#22c55e;color:white">工作面</div>
+      <div class="position-absolute bottom-0 start-0 end-0 p-3" style="background:rgba(0,0,0,.36)"><span id="simStatus">待开始：请选择课程或点击开始实训演练。</span></div>
+    </div>
+    <div class="row g-2">
+      <div class="col-md-4"><div class="border rounded-3 p-2 step-item" id="step1">1. 工艺识别</div></div><div class="col-md-4"><div class="border rounded-3 p-2 step-item" id="step2">2. 异常判断</div></div><div class="col-md-4"><div class="border rounded-3 p-2 step-item" id="step3">3. 处置记录</div></div>
+    </div></div></div>
+    <div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>在线测验</h5><div class="mb-2 fw-bold" id="quizQuestion">当主管路压力持续升高时，优先应关注哪类问题？</div>
+      <div class="border rounded-3 p-2 mb-2 question-option" data-correct="0">A. 办公网络延迟</div><div class="border rounded-3 p-2 mb-2 question-option" data-correct="1">B. 管路堵塞、泵站异常或阀组开度异常</div><div class="border rounded-3 p-2 mb-2 question-option" data-correct="0">C. 浏览器缓存过大</div>
+      <button class="btn btn-dark btn-sm" id="submitQuiz">提交答案</button><span class="ms-2" id="quizResult"></span>
+    </div></div>
+  </div>
+  <div class="col-xl-3">
+    <div class="card border-0 shadow-sm rounded-4 mb-3"><div class="card-body"><h5>学习进度</h5><div class="progress mb-2"><div id="progressBar" class="progress-bar" style="width:0%">0%</div></div><div class="small text-muted" id="progressText">尚未开始实训。</div></div></div>
+    <div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>当前课程</h5><div id="coursePanel" class="text-muted">点击左侧课程卡片查看课程目标、讲师和学时。</div></div></div>
+  </div>
+</div>
+<div class="card border-0 shadow-sm rounded-4 mt-3"><div class="card-body"><h5>培训记录</h5><div class="table-responsive"><table class="table table-striped"><thead><tr><th>学员</th><th>课程</th><th>部门</th><th>成绩</th><th>是否通过</th><th>完成日期</th><th>操作</th></tr></thead><tbody>{% for r in records %}<tr><td>{{ r.trainee }}</td><td>{{ r.course.title }}</td><td>{{ r.department }}</td><td>{{ r.score }}</td><td>{% if r.passed %}<span class="badge text-bg-success">通过</span>{% else %}<span class="badge text-bg-danger">未通过</span>{% endif %}</td><td>{{ r.completed_at }}</td><td><button class="btn btn-sm btn-outline-primary record-btn" data-name="{{ r.trainee }}" data-course="{{ r.course.title }}" data-score="{{ r.score }}">查看证书</button></td></tr>{% endfor %}</tbody></table></div></div></div>
+<div class="modal fade" id="certModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content rounded-4"><div class="modal-header"><h5 class="modal-title">培训合格证明</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="certBody"></div></div></div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+let progress=0;function setProgress(v){progress=Math.max(0,Math.min(100,v));document.getElementById('progressBar').style.width=progress+'%';document.getElementById('progressBar').textContent=progress+'%';document.getElementById('progressText').textContent=progress>=100?'实训流程已完成，可进入考核归档。':'当前实训完成度 '+progress+'%。';}
+document.querySelectorAll('.course-card').forEach(card=>card.addEventListener('click',()=>{document.querySelectorAll('.course-card').forEach(c=>c.classList.remove('active'));card.classList.add('active');document.getElementById('coursePanel').innerHTML=`<strong>${card.dataset.title}</strong><div class="mt-2">讲师：${card.dataset.teacher}</div><div>学时：${card.dataset.hours} / ${card.dataset.mode}</div><div class="text-muted mt-2">${card.dataset.desc}</div>`;document.getElementById('simStatus').textContent='已载入课程：'+card.dataset.title;}));
+document.getElementById('startPractice').addEventListener('click',()=>{setProgress(progress+35);let step=Math.ceil(progress/35);let el=document.getElementById('step'+step);if(el){el.classList.add('done')}document.getElementById('simStatus').textContent=step>=3?'已完成模拟处置：生成培训记录。':'正在进行第 '+step+' 步实训。';});
+document.getElementById('resetPractice').addEventListener('click',()=>{setProgress(0);document.querySelectorAll('.step-item').forEach(e=>e.classList.remove('done'));document.getElementById('simStatus').textContent='待开始：请选择课程或点击开始实训演练。';});
+document.querySelectorAll('.question-option').forEach(o=>o.addEventListener('click',()=>{document.querySelectorAll('.question-option').forEach(x=>x.classList.remove('selected'));o.classList.add('selected')}));
+document.getElementById('submitQuiz').addEventListener('click',()=>{let s=document.querySelector('.question-option.selected');if(!s){document.getElementById('quizResult').textContent='请先选择答案';return;}document.getElementById('quizResult').innerHTML=s.dataset.correct==='1'?'<span class="text-success">回答正确，已计入考核。</span>':'<span class="text-danger">回答错误，请复习管路异常处置。</span>';if(s.dataset.correct==='1')setProgress(progress+20);});
+document.querySelectorAll('.record-btn').forEach(b=>b.addEventListener('click',()=>{document.getElementById('certBody').innerHTML=`<div class="border rounded-4 p-4 text-center"><h4>培训合格证明</h4><p>${b.dataset.name} 已完成《${b.dataset.course}》培训，成绩 ${b.dataset.score} 分。</p><div class="text-muted">本证明为平台演示生成。</div></div>`;new bootstrap.Modal(document.getElementById('certModal')).show();}));
+</script>
+{% endblock %}

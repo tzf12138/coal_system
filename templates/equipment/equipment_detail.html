@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}设备详情{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h3>{{ equipment.name }}</h3>
+                <div class="text-muted">{{ equipment.code }} / {{ equipment.category }}</div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'equipment:equipment_update' equipment.id %}" class="btn btn-outline-primary btn-sm">编辑设备</a>
+                <a href="{% url 'equipment:equipment_delete' equipment.id %}" class="btn btn-outline-danger btn-sm">删除设备</a>
+                <a href="{% url 'equipment:order_create_for_equipment' equipment.id %}" class="btn btn-dark btn-sm">新增工单</a>
+                <a href="{% url 'equipment:export_orders_excel' equipment.id %}" class="btn btn-success btn-sm">导出工单 Excel</a>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-3">矿井：{{ equipment.mine_name }}</div>
+            <div class="col-md-3">位置：{{ equipment.location }}</div>
+            <div class="col-md-3">健康状态：<span id="equipment-health-status">{{ equipment.get_health_status_display }}</span></div>
+            <div class="col-md-3">健康评分：<span id="equipment-health-score">{{ equipment.health_score }}</span></div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-4">累计运行：<span id="equipment-runtime-hours">{{ equipment.runtime_hours }}</span> h</div>
+            <div class="col-md-4">下次维护日期：{{ equipment.next_maintenance_date }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <h5 class="mb-0">设备健康趋势</h5>
+            <div class="d-flex gap-2">
+                <button id="manual-health-refresh-btn" class="btn btn-outline-dark btn-sm" type="button">刷新健康数据</button>
+                <button id="auto-health-refresh-btn" class="btn btn-outline-primary btn-sm" type="button">开启自动刷新</button>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">健康状态：<strong id="equipment-health-status-inline">{{ equipment.get_health_status_display }}</strong></div>
+            <div class="col-md-4">健康评分：<strong id="equipment-health-score-inline">{{ equipment.health_score }}</strong></div>
+            <div class="col-md-4">累计运行：<strong id="equipment-runtime-hours-inline">{{ equipment.runtime_hours }}</strong> h</div>
+        </div>
+        <div class="chart-box"><canvas id="healthChart"></canvas></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6"><div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><h5>诊断传感器部署方案</h5>{% for p in plans %}<div class="border rounded-3 p-3 mb-2"><strong>{{ p.sensor_type }}</strong><div class="text-muted">{{ p.deploy_position }}</div><div>{{ p.purpose }}</div><div>状态：{{ p.status }}</div></div>{% empty %}<div class="text-muted">暂无部署方案</div>{% endfor %}</div></div></div>
+    <div class="col-lg-6"><div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><h5>巡检记录</h5>{% for i in inspections %}<div class="border rounded-3 p-3 mb-2"><strong>{{ i.inspector }}</strong><div class="text-muted">{{ i.inspected_at|date:"Y-m-d H:i" }}</div><div>结论：{{ i.result }}</div><div>振动值：{{ i.vibration_value }} / 温度：{{ i.temperature_value }}</div><div>{{ i.note }}</div></div>{% empty %}<div class="text-muted">暂无巡检记录</div>{% endfor %}</div></div></div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>维修工单</h5>{% for o in orders %}<div class="border rounded-3 p-3 mb-2"><div class="d-flex justify-content-between align-items-start"><strong>{{ o.title }}</strong><div class="d-flex gap-2"><a href="{% url 'equipment:order_update' o.id %}" class="btn btn-sm btn-outline-primary">编辑</a><a href="{% url 'equipment:order_delete' o.id %}" class="btn btn-sm btn-outline-danger">删除</a></div></div><div class="text-muted">{{ o.priority }} / {{ o.get_status_display }} / {{ o.assignee }}</div><div>{{ o.summary }}</div></div>{% empty %}<div class="text-muted">暂无维修工单</div>{% endfor %}</div></div></div>
+    <div class="col-lg-6"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>远程专家诊断与 AR 协作</h5>{% for c in cases %}<div class="border rounded-3 p-3 mb-2"><strong>{{ c.title }}</strong><div class="text-muted">专家：{{ c.expert_name }}</div><div>现象：{{ c.symptom }}</div><div>诊断：{{ c.diagnosis }}</div><div>建议：{{ c.recommendation }}</div></div>{% endfor %}{% for s in ar_sessions %}<div class="border rounded-3 p-3 mb-2 bg-light"><strong>AR 会话：{{ s.session_code }}</strong><div class="text-muted">{{ s.glasses_model }} / {{ s.status }}</div><div>现场：{{ s.field_engineer }} / 专家：{{ s.remote_expert }}</div><div>{{ s.interaction_note }}</div></div>{% endfor %}{% if not cases and not ar_sessions %}<div class="text-muted">暂无远程诊断与 AR 协作记录</div>{% endif %}</div></div></div>
+</div>
+<style>.chart-box{position:relative;width:100%;height:320px;min-height:320px;overflow:hidden;}</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+let healthChart = null;
+let healthTimer = null;
+let healthAutoRefreshEnabled = false;
+function initHealthChart(labels,vibrationValues,temperatureValues){
+ const ctx=document.getElementById('healthChart').getContext('2d');
+ healthChart=new Chart(ctx,{type:'line',data:{labels:labels||[],datasets:[{label:'振动趋势',data:vibrationValues||[],tension:0.3},{label:'温度趋势',data:temperatureValues||[],tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'}}}});
+}
+function updateHealthChart(labels,vibrationValues,temperatureValues){
+ if(!healthChart){initHealthChart(labels,vibrationValues,temperatureValues);return;}
+ healthChart.data.labels=labels||[];
+ healthChart.data.datasets[0].data=vibrationValues||[];
+ healthChart.data.datasets[1].data=temperatureValues||[];
+ healthChart.update();
+}
+function refreshHealthData(){
+ fetch('{% url "equipment:api_equipment_health" equipment.id %}?refresh=1').then(resp=>resp.json()).then(data=>{
+   document.getElementById('equipment-health-status').innerText=data.equipment.health_status;
+   document.getElementById('equipment-health-score').innerText=data.equipment.health_score;
+   document.getElementById('equipment-runtime-hours').innerText=data.equipment.runtime_hours;
+   document.getElementById('equipment-health-status-inline').innerText=data.equipment.health_status;
+   document.getElementById('equipment-health-score-inline').innerText=data.equipment.health_score;
+   document.getElementById('equipment-runtime-hours-inline').innerText=data.equipment.runtime_hours;
+   updateHealthChart(data.series.labels||[],data.series.vibration_values||[],data.series.temperature_values||[]);
+ }).catch(error=>console.error('刷新设备健康数据失败：',error));
+}
+function startHealthAutoRefresh(){stopHealthAutoRefresh();healthTimer=setInterval(refreshHealthData,5000);healthAutoRefreshEnabled=true;document.getElementById('auto-health-refresh-btn').innerText='关闭自动刷新';}
+function stopHealthAutoRefresh(){if(healthTimer){clearInterval(healthTimer);healthTimer=null;}healthAutoRefreshEnabled=false;document.getElementById('auto-health-refresh-btn').innerText='开启自动刷新';}
+document.getElementById('manual-health-refresh-btn').addEventListener('click',function(){refreshHealthData();});
+document.getElementById('auto-health-refresh-btn').addEventListener('click',function(){if(healthAutoRefreshEnabled){stopHealthAutoRefresh();}else{startHealthAutoRefresh();}});
+window.addEventListener('beforeunload',function(){stopHealthAutoRefresh();if(healthChart){healthChart.destroy();healthChart=null;}});
+document.addEventListener('visibilitychange',function(){if(document.hidden){stopHealthAutoRefresh();}});
+refreshHealthData();
+</script>
+{% endblock %}

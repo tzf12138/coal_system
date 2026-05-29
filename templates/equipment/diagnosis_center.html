@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}远程专家诊断中心{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body">
+                <h3>远程专家诊断案例</h3>
+                {% for c in cases %}
+                <div class="border rounded-3 p-3 mb-3">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ c.title }}</strong>
+                        <span class="badge text-bg-primary">{{ c.equipment.name }}</span>
+                    </div>
+                    <div class="text-muted">专家：{{ c.expert_name }} / {{ c.created_at|date:"Y-m-d H:i" }}</div>
+                    <div class="mt-2"><strong>故障现象：</strong>{{ c.symptom }}</div>
+                    <div><strong>诊断结论：</strong>{{ c.diagnosis }}</div>
+                    <div><strong>处置建议：</strong>{{ c.recommendation }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body">
+                <h3>AR 协作会话</h3>
+                {% for s in sessions %}
+                <div class="border rounded-3 p-3 mb-3">
+                    <strong>{{ s.session_code }}</strong>
+                    <div class="text-muted">{{ s.equipment.name }} / {{ s.glasses_model }}</div>
+                    <div>现场人员：{{ s.field_engineer }}</div>
+                    <div>后台专家：{{ s.remote_expert }}</div>
+                    <div>状态：{{ s.status }}</div>
+                    <div class="mt-2">{{ s.interaction_note }}</div>
+                </div>
+                {% endfor %}
+                <div class="alert alert-info mb-0">
+                    演示版已预留 AR 协作记录、眼镜型号、会话编号、现场/远程角色信息。后续可扩展 WebRTC 视频、空间标注、语音指令和工单联动。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

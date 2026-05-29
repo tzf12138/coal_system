@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}工艺详情{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div><h3>{{ process.name }}</h3><div class="text-muted">{{ process.mine_name }} / {{ process.get_process_type_display }}</div></div>
+            <div class="d-flex gap-2 flex-wrap"><span class="badge text-bg-primary fs-6">{{ process.status }}</span><a href="{% url 'monitoring:process_update' process.id %}" class="btn btn-outline-primary btn-sm">编辑工艺</a><a href="{% url 'monitoring:process_delete' process.id %}" class="btn btn-outline-danger btn-sm">删除工艺</a><a href="{% url 'monitoring:sensor_create_for_process' process.id %}" class="btn btn-dark btn-sm">新增传感器</a></div>
+        </div>
+        <div class="row mt-3"><div class="col-md-3">设计能力：{{ process.design_capacity }} m³/h</div><div class="col-md-3">当前流量：<span id="process-flow">{{ process.current_flow }}</span> m³/h</div><div class="col-md-3">浓度：<span id="process-concentration">{{ process.concentration }}</span> %</div><div class="col-md-3">管路压力：<span id="process-pressure">{{ process.pipeline_pressure }}</span> MPa</div></div>
+        <p class="mt-3 mb-0">{{ process.remark }}</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-8"><div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"><h5 class="mb-0">实时流量 / 压力曲线</h5><div class="d-flex gap-2"><button id="manual-refresh-btn" class="btn btn-outline-dark btn-sm" type="button">刷新曲线</button><button id="auto-refresh-btn" class="btn btn-outline-primary btn-sm" type="button">开启自动刷新</button></div></div>
+        <div class="chart-box"><canvas id="trendChart"></canvas></div>
+        <div class="small text-muted mt-2">图表高度已固定，自动刷新只保留一个定时器，不会再把页面不断往下撑。</div>
+    </div></div></div>
+    <div class="col-lg-4"><div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><h5>工业视频终端</h5>{% for video in videos %}<div class="border rounded-3 p-3 mb-2"><strong>{{ video.name }}</strong><div class="text-muted">{{ video.location }}</div><div>状态：{{ video.status }}</div><div class="small text-muted">演示版未接入真实视频流，可继续扩展 RTSP / WebRTC。</div></div>{% empty %}<div class="text-muted">暂无视频终端</div>{% endfor %}</div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7"><div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><h5>传感器监测点</h5><div class="table-responsive"><table class="table table-striped align-middle"><thead><tr><th>名称</th><th>类型</th><th>位置</th><th>当前值</th><th>阈值范围</th><th>状态</th><th>操作</th></tr></thead><tbody id="sensor-table-body">{% for sensor in sensors %}<tr><td>{{ sensor.name }}</td><td>{{ sensor.get_sensor_type_display }}</td><td>{{ sensor.location }}</td><td>{{ sensor.current_value }} {{ sensor.unit }}</td><td>{{ sensor.threshold_low }} ~ {{ sensor.threshold_high }}</td><td>{% if sensor.is_online %}<span class="badge text-bg-success">在线</span>{% else %}<span class="badge text-bg-secondary">离线</span>{% endif %}</td><td><a href="{% url 'monitoring:sensor_update' sensor.id %}" class="btn btn-sm btn-outline-primary">编辑</a> <a href="{% url 'monitoring:sensor_delete' sensor.id %}" class="btn btn-sm btn-outline-danger">删除</a></td></tr>{% endfor %}</tbody></table></div></div></div></div>
+    <div class="col-lg-5"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>该工艺下报警事件</h5>{% for a in alerts %}<div class="border rounded-3 p-3 mb-2"><div class="d-flex justify-content-between"><strong>{{ a.title }}</strong><span class="badge text-bg-danger">{{ a.get_level_display }}</span></div><div class="text-muted">{{ a.description }}</div></div>{% empty %}<div class="text-muted">暂无报警</div>{% endfor %}</div></div></div>
+</div>
+<style>.chart-box{position:relative;width:100%;height:320px;min-height:320px;overflow:hidden;}</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+let trendChart = null;
+let trendTimer = null;
+let autoRefreshEnabled = false;
+function initTrendChart(labels,flowValues,pressureValues,flowName,pressureName){const ctx=document.getElementById('trendChart').getContext('2d');trendChart=new Chart(ctx,{type:'line',data:{labels:labels||[],datasets:[{label:flowName||'流量',data:flowValues||[],tension:0.3},{label:pressureName||'压力',data:pressureValues||[],tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'}}}});}
+function updateTrendChart(labels,flowValues,pressureValues,flowName,pressureName){if(!trendChart){initTrendChart(labels,flowValues,pressureValues,flowName,pressureName);return;}trendChart.data.labels=labels||[];trendChart.data.datasets[0].label=flowName||'流量';trendChart.data.datasets[0].data=flowValues||[];trendChart.data.datasets[1].label=pressureName||'压力';trendChart.data.datasets[1].data=pressureValues||[];trendChart.update();}
+function refreshTrend(){fetch('{% url "monitoring:api_process_trend" process.id %}?refresh=1').then(resp=>resp.json()).then(data=>{document.getElementById('process-flow').innerText=data.process.current_flow;document.getElementById('process-concentration').innerText=data.process.concentration;document.getElementById('process-pressure').innerText=data.process.pipeline_pressure;const flowSeries=data.series.flow||{labels:[],values:[],sensor:'流量'};const pressureSeries=data.series.pressure||{labels:flowSeries.labels||[],values:[],sensor:'压力'};updateTrendChart(flowSeries.labels,flowSeries.values,pressureSeries.values,flowSeries.sensor,pressureSeries.sensor);const body=document.getElementById('sensor-table-body');let html='';data.sensors.forEach(item=>{html += `<tr><td>${item.sensor}</td><td>${item.type}</td><td>${item.location}</td><td>${item.value} ${item.unit}</td><td>${item.low} ~ ${item.high}</td><td>${item.online ? '<span class="badge text-bg-success">在线</span>' : '<span class="badge text-bg-secondary">离线</span>'}</td><td><a href="/monitoring/sensor/${item.id}/edit/" class="btn btn-sm btn-outline-primary">编辑</a> <a href="/monitoring/sensor/${item.id}/delete/" class="btn btn-sm btn-outline-danger">删除</a></td></tr>`;});body.innerHTML=html;}).catch(error=>console.error('刷新工艺曲线失败：', error));}
+function startAutoRefresh(){stopAutoRefresh();trendTimer=setInterval(refreshTrend,5000);autoRefreshEnabled=true;document.getElementById('auto-refresh-btn').innerText='关闭自动刷新';}
+function stopAutoRefresh(){if(trendTimer){clearInterval(trendTimer);trendTimer=null;}autoRefreshEnabled=false;document.getElementById('auto-refresh-btn').innerText='开启自动刷新';}
+document.getElementById('manual-refresh-btn').addEventListener('click',function(){refreshTrend();});
+document.getElementById('auto-refresh-btn').addEventListener('click',function(){if(autoRefreshEnabled){stopAutoRefresh();}else{startAutoRefresh();}});
+window.addEventListener('beforeunload',function(){stopAutoRefresh();if(trendChart){trendChart.destroy();trendChart=null;}});
+document.addEventListener('visibilitychange',function(){if(document.hidden){stopAutoRefresh();}});
+refreshTrend();
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}项目全生命周期管理{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-1">项目全生命周期管理</h2>
+        <div class="text-muted">支持项目、任务的增删改查和阶段跟踪。</div>
+    </div>
+    <a href="{% url 'lifecycle:project_create' %}" class="btn btn-dark">新增项目</a>
+</div>
+<div class="row g-3">
+    {% for project in projects %}
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 card-hover">
+            <div class="card-body">
+                <h5>{{ project.name }}</h5>
+                <div class="text-muted">{{ project.code }} / {{ project.mine_name }}</div>
+                <div class="mt-2">负责人：{{ project.owner }}</div>
+                <div>当前阶段：{{ project.get_stage_display }}</div>
+                <div>预算：{{ project.budget }}</div>
+                <div>工期：{{ project.start_date }} 至 {{ project.end_date }}</div>
+                <div class="mt-2">整体进度：{{ project.progress }}%</div>
+                <div class="progress mt-2">
+                    <div class="progress-bar" style="width: {{ project.progress }}%"></div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap mt-3">
+                    <a class="btn btn-dark" href="{% url 'lifecycle:project_detail' project.id %}">查看详情</a>
+                    <a class="btn btn-outline-primary" href="{% url 'lifecycle:project_update' project.id %}">编辑</a>
+                    <a class="btn btn-outline-danger" href="{% url 'lifecycle:project_delete' project.id %}">删除</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mt-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">近期任务</h5>
+            <a href="{% url 'lifecycle:task_create' %}" class="btn btn-outline-dark btn-sm">新增任务</a>
+        </div>
+        <table class="table table-striped">
+            <thead><tr><th>项目</th><th>任务</th><th>责任人</th><th>状态</th><th>进度</th><th>截止日期</th></tr></thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td>{{ task.project.name }}</td>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.owner }}</td>
+                    <td>{{ task.get_status_display }}</td>
+                    <td>{{ task.progress }}%</td>
+                    <td>{{ task.due_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

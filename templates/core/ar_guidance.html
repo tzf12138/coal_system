@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}AR远程专家指导{% endblock %}
+{% block extra_head %}
+<style>
+.ar-page{--cyan:#22d3ee;--green:#22c55e;--orange:#f97316;--red:#ef4444;--ink:#0f172a}.ar-top{background:linear-gradient(135deg,#08111f,#0f2f4a);color:white;border-radius:26px;padding:22px;box-shadow:0 18px 45px rgba(15,23,42,.18)}
+.live-grid{display:grid;grid-template-columns:1fr 270px;gap:14px}.viewport{height:520px;border-radius:24px;background:radial-gradient(circle at 50% 35%,#475569 0,#1e293b 42%,#020617 100%);position:relative;overflow:hidden;color:white;border:1px solid rgba(255,255,255,.08)}
+.scanline{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 4px);pointer-events:none}.hud{position:absolute;z-index:8;padding:8px 10px;border:1px solid rgba(34,211,238,.3);background:rgba(2,6,23,.45);backdrop-filter:blur(8px);border-radius:12px;font-size:.82rem}.hud.top-left{left:14px;top:14px}.hud.top-right{right:14px;top:14px}.hud.bottom-left{left:14px;bottom:14px}.hud.bottom-right{right:14px;bottom:14px}
+.machine-base{position:absolute;left:29%;top:30%;width:330px;height:170px;border-radius:28px;background:linear-gradient(145deg,#64748b,#172033);box-shadow:0 30px 70px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.08)}.machine-base:before{content:"";position:absolute;left:38px;top:45px;width:78px;height:78px;border-radius:50%;background:#111827;border:12px solid #94a3b8;box-shadow:inset 0 0 0 10px #334155}.machine-base:after{content:"";position:absolute;right:28px;top:46px;width:110px;height:62px;border-radius:16px;background:linear-gradient(135deg,#eab308,#f97316);box-shadow:0 10px 22px rgba(0,0,0,.25)}
+.pipe{position:absolute;height:30px;border-radius:999px;background:linear-gradient(90deg,#94a3b8,#334155);box-shadow:inset 0 4px 8px rgba(255,255,255,.25);}.pipe.p1{left:12%;top:48%;width:240px}.pipe.p2{left:58%;top:51%;width:220px}.pipe-flow{position:absolute;inset:4px;border-radius:99px;background:repeating-linear-gradient(90deg,rgba(34,211,238,.9) 0 22px,rgba(34,211,238,.25) 22px 38px);animation:flow 1.2s linear infinite}@keyframes flow{from{background-position:0 0}to{background-position:60px 0}}
+.mark{position:absolute;z-index:5;width:86px;height:86px;border-radius:50%;border:2px solid var(--cyan);background:rgba(34,211,238,.13);display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;font-size:.82rem;font-weight:700;color:#e0f2fe}.mark.hot{border-color:var(--orange);background:rgba(249,115,22,.22);animation:pulse 1.2s infinite}.mark.done{border-color:var(--green);background:rgba(34,197,94,.18)}@keyframes pulse{50%{box-shadow:0 0 0 14px rgba(249,115,22,.08)}}
+.annotation-box{position:absolute;border:2px dashed #facc15;background:rgba(250,204,21,.12);z-index:6;display:none}.annotation-box.show{display:block}.expert-card{background:#0f172a;color:white;border-radius:18px;padding:12px}.expert-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#2563eb);display:grid;place-items:center;font-weight:800}.side-panel{height:520px;overflow:auto}.telemetry{display:grid;grid-template-columns:1fr 1fr;gap:8px}.telemetry .item{border:1px solid #e2e8f0;border-radius:14px;padding:10px;background:#f8fafc}.telemetry strong{font-size:1.18rem}.chat{height:210px;overflow:auto;background:#f8fafc;border-radius:16px;padding:12px}.chat-line{border-left:3px solid #2563eb;padding-left:10px;margin-bottom:10px}.chat-line.expert{border-color:#22c55e}.chat-line.warn{border-color:#f97316}.tool-btn.active{background:#0f172a;color:white}.repair-step{border:1px solid #e2e8f0;border-radius:14px;padding:10px;margin-bottom:8px;background:#fff}.repair-step.done{background:#ecfdf5;border-color:#86efac}.repair-step.active{background:#eff6ff;border-color:#93c5fd}.capture-thumb{height:74px;border-radius:12px;background:linear-gradient(135deg,#1e293b,#475569);position:relative;color:white;display:grid;place-items:center;font-size:.8rem}.capture-thumb:after{content:"已留痕";position:absolute;right:6px;bottom:4px;background:#16a34a;border-radius:99px;padding:2px 6px;font-size:.7rem}.modal-ar{position:fixed;inset:0;background:rgba(15,23,42,.65);display:none;align-items:center;justify-content:center;z-index:1050}.modal-ar.show{display:flex}.modal-card{background:white;border-radius:22px;padding:22px;max-width:620px;width:92%;box-shadow:0 25px 70px rgba(0,0,0,.35)}
+</style>
+{% endblock %}
+{% block content %}
+<div class="ar-page">
+  <div class="ar-top mb-3">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div><div class="badge text-bg-info mb-2">AR Expert Assist · 演示会话</div><h3 class="mb-2">AR 增强现实远程专家指导系统</h3><div class="opacity-75">模拟现场 AR 第一视角、专家视频会诊、空间标注、语音指令、维修步骤确认、截屏留痕和工单闭环。</div></div>
+      <div class="d-flex gap-2 flex-wrap"><button class="btn btn-light" id="connectBtn">连接 AR 眼镜</button><button class="btn btn-outline-light" id="startCall">发起专家会诊</button><button class="btn btn-outline-warning" id="finishCall">结束并归档</button></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-xl-8">
+      <div class="card border-0 shadow-sm rounded-4"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"><h5 class="mb-0">现场 AR 第一视角</h5><div><span class="badge text-bg-secondary" id="deviceState">未连接</span> <span class="badge text-bg-dark" id="callState">专家离线</span></div></div>
+        <div class="live-grid">
+          <div class="viewport" id="arView">
+            <div class="pipe p1"><div class="pipe-flow"></div></div><div class="pipe p2"><div class="pipe-flow"></div></div><div class="machine-base"></div><div class="scanline"></div>
+            <div class="hud top-left">AR-GLASS-01<br>现场：刘工<br>网络：<span id="netDelay">38ms</span></div>
+            <div class="hud top-right">设备：膏体搅拌机<br>健康评分：<span id="healthScore">73</span><br>温度：<span id="tempVal">71.2℃</span></div>
+            <div class="hud bottom-left" id="subtitle">专家提示：请先连接 AR 眼镜。</div>
+            <div class="hud bottom-right">录像中 ●<br>坐标跟踪：ON</div>
+            <div class="mark" style="left:24%;top:40%" data-name="主管路压力" data-tip="观察管路压力波动，确认阀组是否半开。">管路压力</div>
+            <div class="mark hot" style="left:56%;top:35%" data-name="电机温升点" data-tip="温升偏高，建议复核电机外壳温度和散热状态。">温升点</div>
+            <div class="mark" style="left:39%;top:28%" data-name="轴承振动点" data-tip="轴承振动需与历史巡检数据比对。">轴承座</div>
+            <div class="mark" style="left:64%;top:57%" data-name="阀组开度" data-tip="请检查阀组开度和远程控制状态。">阀组</div>
+            <div class="annotation-box" id="annoBox" style="left:52%;top:30%;width:155px;height:112px"></div>
+          </div>
+          <div class="side-panel">
+            <div class="expert-card mb-3 d-flex align-items-center gap-3"><div class="expert-avatar">周</div><div><strong>远程专家：周工</strong><div class="small text-info" id="expertStatus">等待接入</div><div class="small text-white-50">设备诊断 / 工艺优化</div></div></div>
+            <div class="telemetry mb-3"><div class="item"><div class="text-muted">振动</div><strong id="vibVal">4.2</strong><span class="small"> mm/s</span></div><div class="item"><div class="text-muted">温度</div><strong id="tmpVal2">71.2</strong><span class="small"> ℃</span></div><div class="item"><div class="text-muted">压力</div><strong id="prsVal">4.8</strong><span class="small"> MPa</span></div><div class="item"><div class="text-muted">识别置信度</div><strong id="confVal">86</strong><span class="small"> %</span></div></div>
+            <div class="d-grid gap-2"><button class="btn btn-outline-primary tool-btn" data-tool="标注温升区域">标注温升区域</button><button class="btn btn-outline-success tool-btn" data-tool="发送语音指令">发送语音指令</button><button class="btn btn-outline-warning tool-btn" data-tool="远程圈选部件">远程圈选部件</button><button class="btn btn-outline-dark tool-btn" data-tool="生成工单">生成工单</button></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="col-xl-4">
+      <div class="card border-0 shadow-sm rounded-4 mb-3"><div class="card-body"><h5>专家会话日志</h5><div class="chat" id="chat"><div class="chat-line">系统：等待 AR 设备连接。</div></div><div class="input-group mt-2"><input class="form-control" id="msgInput" value="请对准轴承座，保持画面稳定"><button class="btn btn-primary" id="sendMsg">发送</button></div></div></div>
+      <div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>维修指导清单</h5><div id="steps"><div class="repair-step active">1. 确认设备编号与现场位置</div><div class="repair-step">2. 对准轴承座并采集振动点</div><div class="repair-step">3. 复核电机温升与散热状态</div><div class="repair-step">4. 检查阀组开度与管路压力</div><div class="repair-step">5. 截屏留痕并生成工单</div></div><button class="btn btn-sm btn-primary mt-2" id="nextStep">完成当前步骤</button></div></div>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-lg-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>截屏与标注留痕</h5><div class="row g-2" id="captures"><div class="col-6"><div class="capture-thumb">轴承座截图</div></div><div class="col-6"><div class="capture-thumb">温升点截图</div></div></div><button class="btn btn-outline-dark btn-sm mt-3" id="captureBtn">新增截图留痕</button></div></div></div>
+    <div class="col-lg-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>远程专家诊断案例</h5>{% for c in cases|slice:":2" %}<div class="border rounded-3 p-2 mb-2 small"><strong>{{ c.title }}</strong><div class="text-muted">设备：{{ c.equipment.name }} / 专家：{{ c.expert_name }}</div><div>建议：{{ c.recommendation }}</div></div>{% empty %}<div class="text-muted">暂无诊断案例。</div>{% endfor %}</div></div></div>
+    <div class="col-lg-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><h5>AR 会话记录</h5>{% for s in sessions|slice:":2" %}<div class="border rounded-3 p-2 mb-2 small"><strong>{{ s.session_code }}</strong><div class="text-muted">{{ s.glasses_model }} / {{ s.status }}</div><div>{{ s.interaction_note }}</div></div>{% empty %}<div class="text-muted">暂无 AR 会话。</div>{% endfor %}<button class="btn btn-outline-success btn-sm" id="archiveBtn">归档当前会话</button></div></div></div>
+  </div>
+</div>
+
+<div class="modal-ar" id="workOrderModal"><div class="modal-card"><h4>维修工单草稿</h4><p class="text-muted">由 AR 远程会诊自动生成，可用于演示远程指导闭环。</p><table class="table table-sm"><tr><th>设备</th><td>膏体搅拌机</td></tr><tr><th>问题</th><td>温升偏高，轴承座振动波动，需复核润滑与联轴器状态。</td></tr><tr><th>建议</th><td>停机窗口检查轴承、联轴器、阀组开度，并上传处置照片。</td></tr><tr><th>来源</th><td>AR 会诊截图、空间标注、专家语音指导</td></tr></table><div class="text-end"><button class="btn btn-outline-secondary" id="closeModal">关闭</button><button class="btn btn-success">确认生成</button></div></div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+let step=0, connected=false, inCall=false;
+function addChat(text,cls=''){const chat=document.getElementById('chat');chat.innerHTML+='<div class="chat-line '+cls+'">'+new Date().toLocaleTimeString()+'：'+text+'</div>';chat.scrollTop=chat.scrollHeight;}
+function telemetry(){document.getElementById('netDelay').textContent=(28+Math.floor(Math.random()*42))+'ms';let v=(3.5+Math.random()*1.8).toFixed(1);let t=(68+Math.random()*8).toFixed(1);let p=(4.1+Math.random()*1.3).toFixed(1);let c=(82+Math.random()*14).toFixed(0);document.getElementById('vibVal').textContent=v;document.getElementById('tmpVal2').textContent=t;document.getElementById('tempVal').textContent=t+'℃';document.getElementById('prsVal').textContent=p;document.getElementById('confVal').textContent=c;document.getElementById('healthScore').textContent=Math.max(62,Math.round(88-t/3));}
+setInterval(()=>{if(connected)telemetry();},1800);
+document.getElementById('connectBtn').onclick=()=>{connected=true;document.getElementById('deviceState').className='badge text-bg-success';document.getElementById('deviceState').textContent='AR眼镜在线';document.getElementById('subtitle').textContent='系统提示：AR 设备已连接，正在同步现场画面和传感器数据。';addChat('系统：AR 眼镜接入成功，现场第一视角已同步。');};
+document.getElementById('startCall').onclick=()=>{if(!connected){document.getElementById('connectBtn').click();}inCall=true;document.getElementById('callState').className='badge text-bg-success';document.getElementById('callState').textContent='专家会诊中';document.getElementById('expertStatus').textContent='已接入 · 正在远程标注';document.getElementById('subtitle').textContent='专家提示：先检查电机温升点，再复核轴承座振动。';addChat('专家周工：我已接入，请对准温升点并保持画面稳定。','expert');};
+document.getElementById('finishCall').onclick=()=>{inCall=false;document.getElementById('callState').className='badge text-bg-secondary';document.getElementById('callState').textContent='会诊已结束';document.getElementById('expertStatus').textContent='已离线 · 记录待归档';addChat('系统：会诊结束，空间标注、截图和步骤记录已归档。','warn');};
+document.querySelectorAll('.mark').forEach(m=>m.onclick=()=>{document.querySelectorAll('.mark').forEach(x=>x.classList.remove('done'));m.classList.add('done');document.getElementById('subtitle').textContent='专家标注：'+m.dataset.tip;addChat('专家标注 '+m.dataset.name+'：'+m.dataset.tip,'expert');});
+document.querySelectorAll('.tool-btn').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');let tool=btn.dataset.tool;if(tool==='标注温升区域'||tool==='远程圈选部件'){document.getElementById('annoBox').classList.add('show');document.getElementById('subtitle').textContent='专家已在画面中圈选关键部件。';}if(tool==='发送语音指令'){document.getElementById('subtitle').textContent='语音指令：请检查润滑状态并读取温度传感器。';}if(tool==='生成工单'){document.getElementById('workOrderModal').classList.add('show');}addChat('执行远程操作：'+tool, tool==='生成工单'?'warn':'expert');});
+document.getElementById('sendMsg').onclick=()=>{let text=document.getElementById('msgInput').value||'请继续检查';addChat('专家：'+text,'expert');document.getElementById('subtitle').textContent='专家语音：'+text;};
+document.getElementById('nextStep').onclick=()=>{let arr=document.querySelectorAll('.repair-step');if(step<arr.length){arr[step].classList.remove('active');arr[step].classList.add('done');addChat('维修步骤完成：'+arr[step].textContent,'expert');step++;if(step<arr.length){arr[step].classList.add('active');}else{addChat('系统：全部维修指导步骤完成，可生成工单并归档。','warn');}}};
+document.getElementById('captureBtn').onclick=()=>{const box=document.getElementById('captures');const n=box.children.length+1;box.innerHTML+='<div class="col-6"><div class="capture-thumb">AR截图 '+n+'</div></div>';addChat('已完成第 '+n+' 张截屏留痕。');};
+document.getElementById('archiveBtn').onclick=()=>{addChat('系统：当前 AR 会话已归档到诊断案例与工单记录。','warn');};
+document.getElementById('closeModal').onclick=()=>document.getElementById('workOrderModal').classList.remove('show');document.getElementById('workOrderModal').onclick=e=>{if(e.target.id==='workOrderModal')e.currentTarget.classList.remove('show');};
+</script>
+{% endblock %}

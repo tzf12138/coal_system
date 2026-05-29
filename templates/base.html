@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}煤矿智能化充填综合操作平台{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f5f7fb; }
+        .navbar-brand { font-weight: 700; }
+        .card-hover:hover { transform: translateY(-2px); transition: .2s; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+        .badge-soft { background: #e9f2ff; color: #2457c5; }
+        .stat-card { border: none; border-radius: 16px; }
+        .sidebar-link { text-decoration: none; color: #1f2937; display:block; padding: 8px 12px; border-radius: 10px; }
+        .sidebar-link:hover { background: #e9f2ff; }
+        .section-title { font-weight: 700; }
+        .small-muted { color: #6b7280; font-size: .92rem; }
+        .table td, .table th { vertical-align: middle; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="/">煤矿智能化充填综合操作平台</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample07">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarsExample07">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="/">首页</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/core/dashboard/">综合大屏</a>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">充填业务</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/monitoring/">工艺监测</a></li>
+            <li><a class="dropdown-item" href="/monitoring/sensors/">传感器中心</a></li>
+            <li><a class="dropdown-item" href="/monitoring/alerts/">报警中心</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/lifecycle/">项目管理</a></li>
+            <li><a class="dropdown-item" href="/lifecycle/tasks/">任务看板</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">设备诊断</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/equipment/">设备健康</a></li>
+            <li><a class="dropdown-item" href="/equipment/diagnosis/">远程专家诊断</a></li>
+            <li><a class="dropdown-item" href="/core/ar-guidance/">AR远程指导</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">培训知识</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/training/">培训实训</a></li>
+            <li><a class="dropdown-item" href="/core/knowledge/">知识库</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">创新演示</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/core/digital-twin/">三维仿真展示</a></li>
+            <li><a class="dropdown-item" href="/core/ai-center/">AI分析中心</a></li>
+            <li><a class="dropdown-item" href="/core/smart-control/">智慧管控中心</a></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="d-flex gap-2 text-white small align-items-center">
+        <span>传感器 {{ nav_sensor_count }}</span>
+        <span>|</span>
+        <span>高等级告警 {{ nav_alert_count }}</span>
+        <span>|</span>
+        <span>项目 {{ nav_project_count }}</span>
+        <span>|</span>
+        <span>设备 {{ nav_equipment_count }}</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid py-4">
+    {% if messages %}<div class="container-fluid mb-3">{% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
